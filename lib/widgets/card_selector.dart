@@ -42,8 +42,8 @@ class CardSelector extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: CardRank.values.map((rank) {
               // Una carta è disabilitata solo se TUTTI i 4 semi sono stati usati
               final usedSuitsForRank = selectedCards
@@ -83,8 +83,8 @@ class _CardButton extends StatelessWidget {
       child: Opacity(
         opacity: isDisabled ? 0.4 : 1.0,
         child: Container(
-          width: 60,
-          height: 80,
+          width: 58,
+          height: 78,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -220,60 +220,63 @@ class _SuitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Opacity(
-        opacity: isDisabled ? 0.4 : 1.0,
-        child: Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            color: isDisabled ? Colors.grey : _suitColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: isDisabled
-                ? []
-                : [
-                    BoxShadow(
-                      color: _suitColor.withOpacity(0.3),
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-          ),
-          child: Stack(
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Text(
-                      suit.emoji,
-                      style: const TextStyle(fontSize: 36),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Center(
-                    child: Text(
-                      suit.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Opacity(
+          opacity: isDisabled ? 0.4 : 1.0,
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: isDisabled ? Colors.grey : _suitColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: isDisabled
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: _suitColor.withOpacity(0.3),
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+            ),
+            child: Stack(
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        suit.emoji,
+                        style: const TextStyle(fontSize: 36),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              if (isDisabled)
-                Center(
-                  child: Icon(
-                    Icons.block,
-                    color: Colors.white.withOpacity(0.8),
-                    size: 40,
-                  ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(
+                        suit.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-            ],
+                if (isDisabled)
+                  Center(
+                    child: Icon(
+                      Icons.block,
+                      color: Colors.white.withOpacity(0.8),
+                      size: 40,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
