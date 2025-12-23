@@ -377,7 +377,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
 
   Widget _buildScoreSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.only(
@@ -393,33 +393,65 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.emoji_events, color: Color(0xFFF39C12), size: 32),
-          const SizedBox(width: 12),
-          const Text(
-            'Punteggio:',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2C3E50),
+          const SizedBox(
+            width: 48,
+          ), // Spazio per bilanciare il pulsante refresh
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.emoji_events,
+                  color: Color(0xFFF39C12),
+                  size: 28,
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Punteggio:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C3E50),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF39C12), Color(0xFFE67E22)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    '$_totalScore',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFF39C12), Color(0xFFE67E22)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '$_totalScore',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedRanks.clear();
+                });
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Icon(Icons.refresh, color: Color(0xFF9B59B6), size: 24),
               ),
             ),
           ),
