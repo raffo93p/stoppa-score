@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
 import '../models/card_rank.dart';
 import '../models/card_suit.dart';
-import '../widgets/card_selector.dart';
+import '../widgets/suit_first_card_selector.dart';
 import '../widgets/card_display.dart';
+import 'quick_count_screen.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -14,162 +15,19 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  CardRank? _selectedRank;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<SuitFirstCardSelectorState> _cardSelectorKey =
+      GlobalKey<SuitFirstCardSelectorState>();
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void _onCardRankSelected(CardRank rank) {
-    setState(() {
-      _selectedRank = rank;
-    });
-    _showSuitDialog();
-  }
-
-  void _showSuitDialog() {
+  void _onCardSelected(CardRank rank, CardSuit suit) {
     final gameState = context.read<GameState>();
-    final allSelectedCards = [
-      ...gameState.allCards,
-      ...gameState.currentTurnCards,
-    ];
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 40),
-                  const Expanded(
-                    child: Text(
-                      'Seleziona il seme',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: CardSuit.values.map((suit) {
-                  final isDisabled = allSelectedCards.any(
-                    (card) => card.rank == _selectedRank && card.suit == suit,
-                  );
-                  return _buildSuitButton(context, suit, isDisabled, () {
-                    if (!isDisabled) {
-                      Navigator.pop(context);
-                      _onSuitSelected(suit);
-                    }
-                  });
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    gameState.addCard(rank, suit);
   }
 
-  Widget _buildSuitButton(
-    BuildContext context,
-    CardSuit suit,
-    bool isDisabled,
-    VoidCallback onTap,
-  ) {
-    Color getSuitColor() {
-      switch (suit) {
-        case CardSuit.coppe:
-          return const Color(0xFFE74C3C);
-        case CardSuit.denari:
-          return const Color(0xFFF1C40F);
-        case CardSuit.spade:
-          return const Color(0xFF34495E);
-        case CardSuit.bastoni:
-          return const Color(0xFF27AE60);
-      }
-    }
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: isDisabled ? null : onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Opacity(
-          opacity: isDisabled ? 0.4 : 1.0,
-          child: Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: isDisabled ? Colors.grey : getSuitColor(),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: isDisabled
-                  ? []
-                  : [
-                      BoxShadow(
-                        color: getSuitColor().withOpacity(0.3),
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-            ),
-            child: Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Center(
-                      child: Text(
-                        suit.emoji,
-                        style: const TextStyle(fontSize: 36),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Center(
-                      child: Text(
-                        suit.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (isDisabled)
-                  Center(
-                    child: Icon(
-                      Icons.block,
-                      color: Colors.white.withOpacity(0.8),
-                      size: 40,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
+  void _navigateToQuickCount() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const QuickCountScreen()),
     );
   }
 
@@ -272,19 +130,11 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _onSuitSelected(CardSuit suit) {
-    if (_selectedRank != null) {
-      final gameState = context.read<GameState>();
-      gameState.addCard(_selectedRank!, suit);
-      setState(() {
-        _selectedRank = null;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: _buildDrawer(),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -299,13 +149,16 @@ class _GameScreenState extends State<GameScreen> {
               _buildHeader(),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Column(
                     children: [
                       _buildCurrentTurnSection(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       _buildCardSelector(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       _buildPreviousTurnsSection(),
                     ],
                   ),
@@ -319,11 +172,90 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF3498DB), Color(0xFF2C3E50)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                '🃏 Stoppa',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Contatore Punti',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+              ),
+              const SizedBox(height: 40),
+              ListTile(
+                leading: const Icon(Icons.calculate, color: Colors.white),
+                title: const Text(
+                  'Partita Completa',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  'Modalità con turni e semi',
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                ),
+                onTap: () => Navigator.pop(context),
+              ),
+              ListTile(
+                leading: const Icon(Icons.flash_on, color: Colors.amber),
+                title: const Text(
+                  'Conta Rapido',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  'Calcolo veloce senza semi',
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToQuickCount();
+                },
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'v1.0',
+                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     return Consumer<GameState>(
       builder: (context, gameState, _) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
             borderRadius: const BorderRadius.only(
@@ -332,72 +264,66 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '🃏 Stoppa Score',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              IconButton(
+                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                icon: const Icon(Icons.menu, color: Colors.white),
+              ),
+              const Expanded(
+                child: Text(
+                  '🃏 Stoppa Score',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.refresh, color: Colors.white, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${gameState.turnNumber}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.style, color: Colors.white, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${gameState.totalCardsCount}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.refresh,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${gameState.turnNumber}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.style, color: Colors.white, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${gameState.totalCardsCount}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -410,10 +336,10 @@ class _GameScreenState extends State<GameScreen> {
     return Consumer<GameState>(
       builder: (context, gameState, _) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -431,7 +357,7 @@ class _GameScreenState extends State<GameScreen> {
                   const Text(
                     'Carte Turno Corrente',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF2C3E50),
                     ),
@@ -440,45 +366,45 @@ class _GameScreenState extends State<GameScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF3498DB).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           '${gameState.currentTurnCards.length}/3',
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF3498DB),
                           ),
                         ),
                       ),
                       if (gameState.currentTurnScore != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
+                            horizontal: 8,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF39C12).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
                             children: [
                               const Icon(
                                 Icons.emoji_events,
                                 color: Color(0xFFF39C12),
-                                size: 16,
+                                size: 14,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 '${gameState.currentTurnScore!.score}',
                                 style: const TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFF39C12),
                                 ),
@@ -491,15 +417,15 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               if (gameState.currentTurnCards.isEmpty)
                 const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(32.0),
+                    padding: EdgeInsets.all(16.0),
                     child: Text(
                       'Seleziona le carte per questo turno',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.grey,
                         fontStyle: FontStyle.italic,
                       ),
@@ -534,11 +460,14 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             if (!gameState.canAddCard)
               Container(
-                padding: const EdgeInsets.all(20),
-                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFF27AE60), width: 2),
                 ),
                 child: const Row(
@@ -547,58 +476,23 @@ class _GameScreenState extends State<GameScreen> {
                     Icon(
                       Icons.check_circle,
                       color: Color(0xFF27AE60),
-                      size: 32,
+                      size: 24,
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: 8),
                     Text(
-                      'Turno completo! Vai al prossimo turno',
+                      'Turno completo!',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF27AE60),
                       ),
                     ),
                   ],
                 ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3498DB), Color(0xFF2980B9)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.touch_app, color: Colors.white, size: 24),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Seleziona ancora ${3 - gameState.currentTurnCards.length} ${gameState.currentTurnCards.length == 2 ? "carta" : "carte"}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
               ),
-            CardSelector(
-              onCardSelected: _onCardRankSelected,
+            SuitFirstCardSelector(
+              key: _cardSelectorKey,
+              onCardSelected: _onCardSelected,
               selectedCards: [
                 ...gameState.allCards,
                 ...gameState.currentTurnCards,
@@ -700,9 +594,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     gameState.resetGame();
-                    setState(() {
-                      _selectedRank = null;
-                    });
+                    _cardSelectorKey.currentState?.resetSelection();
                   },
                   icon: const Icon(Icons.refresh),
                   label: const Text('Nuova'),

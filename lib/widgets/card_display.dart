@@ -30,57 +30,58 @@ class CardDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          width: 90,
-          height: 130,
-          margin: const EdgeInsets.all(4),
+          width: 70,
+          height: 100,
+          margin: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             color: isHighlighted ? Colors.amber.shade100 : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isHighlighted ? Colors.amber.shade700 : _suitColor,
-              width: isHighlighted ? 3 : 2,
+              width: isHighlighted ? 2 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
                 color: isHighlighted
                     ? Colors.amber.withOpacity(0.5)
                     : Colors.black.withOpacity(0.1),
-                blurRadius: isHighlighted ? 10 : 5,
-                offset: Offset(0, isHighlighted ? 4 : 2),
+                blurRadius: isHighlighted ? 8 : 4,
+                offset: Offset(0, isHighlighted ? 3 : 2),
               ),
             ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(card.suit.emoji, style: const TextStyle(fontSize: 28)),
-              const SizedBox(height: 4),
+              Text(card.suit.emoji, style: const TextStyle(fontSize: 20)),
+              const SizedBox(height: 2),
               Text(
                 card.rank.displayName,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _suitColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 12,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: _suitColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   '${card.value}',
                   style: TextStyle(
                     color: _suitColor,
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -89,8 +90,8 @@ class CardDisplay extends StatelessWidget {
         ),
         if (onRemove != null)
           Positioned(
-            top: 0,
-            right: 0,
+            top: -4,
+            right: -4,
             child: GestureDetector(
               onTap: onRemove,
               child: Container(
@@ -105,8 +106,8 @@ class CardDisplay extends StatelessWidget {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(6),
-                child: const Icon(Icons.close, color: Colors.white, size: 16),
+                padding: const EdgeInsets.all(4),
+                child: const Icon(Icons.close, color: Colors.white, size: 12),
               ),
             ),
           ),
