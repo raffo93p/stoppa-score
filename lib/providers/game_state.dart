@@ -12,6 +12,7 @@ class GameState extends ChangeNotifier {
   ScoreResult? _currentTurnScore;
   ScoreResult? _finalScore;
   bool _showingFinalScore = false;
+  bool _useRealCards = false;
 
   List<PlayingCard> get currentTurnCards => _currentTurnCards;
   List<PlayingCard> get allCards => _allCards;
@@ -19,7 +20,13 @@ class GameState extends ChangeNotifier {
   ScoreResult? get currentTurnScore => _currentTurnScore;
   ScoreResult? get finalScore => _finalScore;
   bool get showingFinalScore => _showingFinalScore;
+  bool get useRealCards => _useRealCards;
   bool get canAddCard => _currentTurnCards.length < 3;
+
+  void toggleRealCards(bool value) {
+    _useRealCards = value;
+    notifyListeners();
+  }
 
   void addCard(CardRank rank, CardSuit suit) {
     if (_currentTurnCards.length >= 3) {

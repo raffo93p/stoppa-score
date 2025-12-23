@@ -119,7 +119,11 @@ class _GameScreenState extends State<GameScreen> {
                 Wrap(
                   alignment: WrapAlignment.center,
                   children: gameState.finalScore!.usedCards.map((card) {
-                    return CardDisplay(card: card, isHighlighted: true);
+                    return CardDisplay(
+                      card: card,
+                      isHighlighted: true,
+                      useRealCards: gameState.useRealCards,
+                    );
                   }).toList(),
                 ),
               ],
@@ -173,81 +177,133 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildDrawer() {
-    return Drawer(
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF3498DB), Color(0xFF2C3E50)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              const Text(
-                '🃏 Stoppa',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+    return Consumer<GameState>(
+      builder: (context, gameState, _) {
+        return Drawer(
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF3498DB), Color(0xFF2C3E50)],
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Contatore Punti',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withOpacity(0.8),
-                ),
-              ),
-              const SizedBox(height: 40),
-              ListTile(
-                leading: const Icon(Icons.calculate, color: Colors.white),
-                title: const Text(
-                  'Partita Completa',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  const Text(
+                    '🃏 Stoppa',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                subtitle: Text(
-                  'Modalità con turni e semi',
-                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
-                ),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.flash_on, color: Colors.amber),
-                title: const Text(
-                  'Conta Rapido',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  Text(
+                    'Contatore Punti',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
                   ),
-                ),
-                subtitle: Text(
-                  'Calcolo veloce senza semi',
-                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToQuickCount();
-                },
+                  const SizedBox(height: 40),
+                  ListTile(
+                    leading: const Icon(Icons.calculate, color: Colors.white),
+                    title: const Text(
+                      'Partita Completa',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Modalità con turni e semi',
+                      style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    ),
+                    onTap: () => Navigator.pop(context),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.flash_on, color: Colors.amber),
+                    title: const Text(
+                      'Conta Rapido',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Calcolo veloce senza semi',
+                      style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateToQuickCount();
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(color: Colors.white24),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          gameState.useRealCards
+                              ? Icons.style
+                              : Icons.grid_view,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Carte Reali',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                gameState.useRealCards
+                                    ? 'Immagini originali'
+                                    : 'Carte stilizzate',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: gameState.useRealCards,
+                          onChanged: (value) {
+                            gameState.toggleRealCards(value);
+                          },
+                          activeColor: Colors.amber,
+                          activeTrackColor: Colors.amber.withOpacity(0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'v1.0',
+                      style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                    ),
+                  ),
+                ],
               ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'v1.0',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -443,6 +499,7 @@ class _GameScreenState extends State<GameScreen> {
                       card: card,
                       isHighlighted: isHighlighted,
                       onRemove: () => gameState.removeCard(card),
+                      useRealCards: gameState.useRealCards,
                     );
                   }).toList(),
                 ),
@@ -497,6 +554,7 @@ class _GameScreenState extends State<GameScreen> {
                 ...gameState.allCards,
                 ...gameState.currentTurnCards,
               ],
+              useRealCards: gameState.useRealCards,
             ),
           ],
         );
@@ -566,7 +624,11 @@ class _GameScreenState extends State<GameScreen> {
                 children: gameState.allCards.map((card) {
                   final isHighlighted =
                       gameState.finalScore?.usedCards.contains(card) ?? false;
-                  return CardDisplay(card: card, isHighlighted: isHighlighted);
+                  return CardDisplay(
+                    card: card,
+                    isHighlighted: isHighlighted,
+                    useRealCards: gameState.useRealCards,
+                  );
                 }).toList(),
               ),
             ],

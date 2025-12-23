@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import '../models/card_rank.dart';
 import '../models/card_suit.dart';
 import '../models/playing_card.dart';
+import 'real_card_image.dart';
 
 class SuitFirstCardSelector extends StatefulWidget {
   final Function(CardRank, CardSuit) onCardSelected;
   final List<PlayingCard> selectedCards;
+  final bool useRealCards;
 
   const SuitFirstCardSelector({
     super.key,
     required this.onCardSelected,
     this.selectedCards = const [],
+    this.useRealCards = false,
   });
 
   @override
@@ -157,22 +160,73 @@ class SuitFirstCardSelectorState extends State<SuitFirstCardSelector> {
                 ]
               : [],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(suit.emoji, style: const TextStyle(fontSize: 24)),
-            const SizedBox(height: 2),
-            Text(
-              suit.name,
-              style: TextStyle(
-                color: isSelected ? Colors.white : color,
-                fontWeight: FontWeight.bold,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
+        child: widget.useRealCards
+            ? _buildRealSuitButton(suit, isSelected, color)
+            : _buildStylizedSuitButton(suit, isSelected, color),
       ),
+    );
+  }
+
+  Widget _buildRealSuitButton(CardSuit suit, bool isSelected, Color color) {
+    String suitName;
+    switch (suit) {
+      case CardSuit.bastoni:
+        suitName = 'bastoni';
+        break;
+      case CardSuit.coppe:
+        suitName = 'coppe';
+        break;
+      case CardSuit.denari:
+        suitName = 'denari';
+        break;
+      case CardSuit.spade:
+        suitName = 'spade';
+        break;
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: Image.asset(
+            'assets/cards/$suitName${1}.png',
+            width: 45,
+            height: 45,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Text(suit.emoji, style: const TextStyle(fontSize: 24));
+            },
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          suit.name,
+          style: TextStyle(
+            color: isSelected ? Colors.white : color,
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStylizedSuitButton(CardSuit suit, bool isSelected, Color color) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(suit.emoji, style: const TextStyle(fontSize: 24)),
+        const SizedBox(height: 2),
+        Text(
+          suit.name,
+          style: TextStyle(
+            color: isSelected ? Colors.white : color,
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
+          ),
+        ),
+      ],
     );
   }
 
@@ -199,6 +253,64 @@ class SuitFirstCardSelectorState extends State<SuitFirstCardSelector> {
   }
 
   Widget _buildCardButton(CardRank rank, bool isDisabled) {
+    if (widget.useRealCards) {
+      return _buildRealCardButton(rank, isDisabled);
+    }
+    return _buildStylizedCardButton(rank, isDisabled);
+  }
+
+  Widget _buildRealCardButton(CardRank rank, bool isDisabled) {
+    return GestureDetector(
+      onTap: isDisabled ? null : () => _onCardTap(rank),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: isDisabled ? 0.4 : 1.0,
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: isDisabled
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+              ),
+              child: RealCardImage(
+                rank: rank,
+                suit: _selectedSuit!,
+                width: 56,
+                height: 80,
+                showScore: true,
+              ),
+            ),
+            if (isDisabled)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStylizedCardButton(CardRank rank, bool isDisabled) {
     final suitColor = _getSuitColor(_selectedSuit!);
 
     return GestureDetector(
