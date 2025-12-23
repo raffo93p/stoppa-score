@@ -32,7 +32,7 @@ class CardDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    Widget cardWidget = Stack(
       clipBehavior: Clip.none,
       children: [
         if (useRealCards) _buildRealCard() else _buildStylizedCard(),
@@ -42,6 +42,7 @@ class CardDisplay extends StatelessWidget {
             right: -4,
             child: GestureDetector(
               onTap: onRemove,
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.red,
@@ -54,13 +55,20 @@ class CardDisplay extends StatelessWidget {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(4),
-                child: const Icon(Icons.close, color: Colors.white, size: 12),
+                padding: const EdgeInsets.all(6),
+                child: const Icon(Icons.close, color: Colors.white, size: 14),
               ),
             ),
           ),
       ],
     );
+
+    // Se onRemove è presente, rendi l'intera carta cliccabile
+    if (onRemove != null) {
+      return GestureDetector(onTap: onRemove, child: cardWidget);
+    }
+
+    return cardWidget;
   }
 
   Widget _buildRealCard() {
